@@ -936,12 +936,74 @@ function apriCamera(mode) {
 }
 
 function estraiTarga(imageData, mode) {
-  // TODO: Integra Plate Recognizer API
-  // Per ora mostra dialogo inserimento manuale
-  const targa = prompt('Targa rilevata (conferma o correggi):');
-  if (targa && targa.trim()) {
-    impostaTarga(targa.trim().toUpperCase(), mode);
+  // Mostra loading
+  const display = document.getElementById(
+    mode === 'ingresso' ? 'targa-display-in' : 'targa-display-out'
+  );
+  display.innerHTML = '<div style="color:var(--accent3);font-size:18px;">🔍 Analisi targa...</div>';
+
+  // Converti base64 in blob
+  const blob = dataURLtoBlob(imageData);
+  const formData = new FormData();
+  formData.append('upload', blob, 'targa.jpg');
+  formData.append('regions', 'it');
+
+  fetch('https://api.platerecognizer.com/v1/plate-reader/', {
+    method: 'POST',
+    headers: { 'Authorization': 'Token a041edd34c6ee75252c23967c99b9cdec101c79fs' },
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.results && data.results.length > 0) {
+      const targa = data.results[0].plate.toUpperCase();
+      const conf = Math.round(data.results[0].score * 100);
+      const conferma = prompt(`Targa rilevata (${conf}% sicuro):\n\nConferma o correggi:`, targa);
+      if (conferma && conferma.trim()) {
+        impostaTarga(conferma.trim().toUpperCase(), mode);
+      } else {
+        resetDisplay(mode);
+      }
+    } else {
+      const manuale = prompt('Targa non rilevata. Inserisci manualmente:');
+      if (manuale && manuale.trim()) {
+        impostaTarga(manuale.trim().toUpperCase(), mode);
+      } else {
+        resetDisplay(mode);
+      }
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    const manuale = prompt('Errore connessione. Inserisci targa manualmente:');
+    if (manuale && manuale.trim()) {
+      impostaTarga(manuale.trim().toUpperCase(), mode);
+    } else {
+      resetDisplay(mode);
+    }
+  });
+}
+
+function resetDisplay(mode) {
+  if (mode === 'ingresso') {
+    document.getElementById('targa-display-in').innerHTML =
+      '<div class="targa-placeholder" id="targa-ph-in">Scansiona o inserisci targa</div>' +
+      '<div class="targa-value" id="targa-val-in" style="display:none"></div>';
+  } else {
+    document.getElementById('targa-display-out').innerHTML =
+      '<div class="targa-placeholder" id="targa-ph-out">Scansiona o inserisci targa</div>' +
+      '<div class="targa-value" id="targa-val-out" style="display:none"></div>';
   }
+}
+
+function dataURLtoBlob(dataURL) {
+  const arr = dataURL.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while(n--) u8arr[n] = bstr.charCodeAt(n);
+  return new Blob([u8arr], {type: mime});
 }
 
 // ═══════════════════════════════════════════════

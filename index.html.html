@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Charlotte — City Parking</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --panel: #16161f;
+    --border: #2a2a3a;
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --accent3: #c084fc;
+    --green: #10b981;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--bg) !important;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Forza sfondo scuro ovunque */
+  .main, .screen, input, select, option {
+    background-color: var(--bg);
+  }
+
+  select option {
+    background: var(--bg2);
+    color: var(--text);
+  }
+
+  /* Header */
+  .header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: white;
+    box-shadow: 0 0 16px rgba(124,58,237,0.5);
+  }
+
+  .logo-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, var(--accent3), var(--white));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .garage-badge {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .garage-badge select {
+    background: none;
+    border: none;
+    color: var(--accent3);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* Main content */
+  .main { padding: 16px; max-width: 500px; margin: 0 auto; }
+
+  /* Screen */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* HOME SCREEN */
+  .time-display {
+    text-align: center;
+    padding: 10px 0 8px;
+  }
+
+  .time-display .time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 52px;
+    color: var(--white);
+    letter-spacing: 4px;
+    text-shadow: 0 0 30px rgba(124,58,237,0.4);
+  }
+
+  .time-display .date {
+    font-size: 18px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 2px;
+  }
+
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .action-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 38px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .action-btn.ingresso::before { background: var(--green); }
+  .action-btn.uscita::before { background: var(--accent2); }
+  .action-btn.lista::before { background: var(--amber); }
+  .action-btn.ricerca::before { background: var(--red); }
+
+  .action-btn:active { transform: scale(0.96); opacity: 0.85; }
+
+  .action-btn .btn-icon {
+    font-size: 72px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .action-btn .btn-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .action-btn.ingresso .btn-label { color: var(--green); }
+  .action-btn.uscita .btn-label { color: var(--accent2); }
+  .action-btn.lista .btn-label { color: var(--amber); }
+  .action-btn.ricerca .btn-label { color: var(--red); }
+
+  .action-btn .btn-sub {
+    font-size: 22px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .stat .val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--accent3);
+  }
+
+  .stat .lbl {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* INGRESSO / USCITA SCREEN */
+  .screen-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .back-btn {
+    width: 36px;
+    height: 36px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .screen-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Targa display */
+  .targa-display {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+    position: relative;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .targa-display.has-targa {
+    border-color: var(--green);
+    box-shadow: 0 0 20px rgba(16,185,129,0.15);
+  }
+
+  .targa-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 42px;
+    font-weight: bold;
+    letter-spacing: 6px;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+
+  .targa-placeholder {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  /* Camera button */
+  .camera-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 14px;
+    padding: 18px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+    transition: all 0.2s;
+    margin-bottom: 12px;
+  }
+
+  .camera-btn:active { transform: scale(0.97); }
+
+  /* Manual input */
+  .manual-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .manual-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .manual-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .manual-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: var(--white);
+    text-transform: uppercase;
+    outline: none;
+    text-align: center;
+  }
+
+  .manual-input:focus { border-color: var(--accent); }
+
+  .manual-confirm-btn {
+    background: var(--bg2);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--accent3);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  /* Tipo veicolo */
+  .tipo-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .tipo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .tipo-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--muted);
+    transition: all 0.2s;
+    font-family: 'Exo 2', sans-serif;
+  }
+
+  .tipo-btn.selected {
+    background: rgba(124,58,237,0.2);
+    border-color: var(--accent);
+    color: var(--accent3);
+  }
+
+  .tipo-btn .tipo-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+  /* Conferma button */
+  .conferma-btn {
+    width: 100%;
+    background: var(--green);
+    border: none;
+    border-radius: 14px;
+    padding: 18px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(16,185,129,0.3);
+    transition: all 0.2s;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .conferma-btn.enabled {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .conferma-btn:active { transform: scale(0.97); }
+
+  /* LISTA SOSTE */
+  .sosta-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .sosta-card.attiva { border-left: 3px solid var(--green); }
+  .sosta-card.chiusa { border-left: 3px solid var(--muted); opacity: 0.7; }
+
+  .sosta-targa {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--white);
+    letter-spacing: 2px;
+  }
+
+  .sosta-info { flex: 1; }
+
+  .sosta-tipo {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .sosta-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+    text-align: right;
+  }
+
+  .sosta-duration {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 2px;
+  }
+
+  .uscita-quick-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Success overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .overlay.show { display: flex; }
+
+  .overlay-icon { font-size: 72px; animation: pop 0.4s ease; }
+  .overlay-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--white);
+    text-align: center;
+  }
+  .overlay-sub { font-size: 14px; color: var(--muted); text-align: center; }
+
+  .overlay-targa {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 36px;
+    letter-spacing: 4px;
+    color: var(--green);
+    background: rgba(16,185,129,0.1);
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px solid var(--green);
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Camera input hidden */
+  #camera-input { display: none; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+  .empty-state .empty-icon { font-size: 52px; margin-bottom: 12px; }
+  .empty-state .empty-text { font-size: 14px; }
+
+  /* Search */
+  .search-input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: var(--white);
+    text-transform: uppercase;
+    outline: none;
+    margin-bottom: 16px;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+
+  .section-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  /* ═══ TABLET (schermo > 600px) ═══ */
+  @media (min-width: 600px) {
+    .time-display .time { font-size: 86px; letter-spacing: 8px; }
+    .time-display .date { font-size: 28px; letter-spacing: 4px; }
+    .time-display { padding: 24px 0 16px; }
+
+    .stat .val { font-size: 42px; }
+    .stat .lbl { font-size: 16px; }
+    .stat { padding: 14px; }
+
+    .action-btn .btn-icon { font-size: 96px; margin-bottom: 16px; }
+    .action-btn .btn-label { font-size: 42px; }
+    .action-btn .btn-sub { font-size: 26px; margin-top: 10px; }
+    .action-btn { padding: 40px 16px; border-radius: 22px; }
+
+    .logo-icon { width: 52px; height: 52px; font-size: 26px; }
+    .logo-text { font-size: 30px; }
+    .garage-badge select { font-size: 16px; }
+    .header { padding: 16px 24px; }
+
+    .main { padding: 20px 24px; max-width: 700px; }
+    .action-grid { gap: 16px; }
+    .stats-bar { gap: 12px; margin-bottom: 16px; }
+
+    /* Schermate interne */
+    .screen-title { font-size: 32px; }
+    .back-btn { width: 52px; height: 52px; font-size: 26px; border-radius: 14px; }
+    .targa-value { font-size: 64px; letter-spacing: 10px; }
+    .camera-btn { font-size: 26px; padding: 24px; border-radius: 18px; }
+    .manual-input { font-size: 32px; letter-spacing: 5px; padding: 16px; }
+    .manual-confirm-btn { font-size: 28px; padding: 16px 20px; }
+    .manual-label { font-size: 16px; }
+    .tipo-btn { font-size: 16px; padding: 16px 8px; }
+    .tipo-btn .tipo-icon { font-size: 32px; }
+    .conferma-btn { font-size: 28px; padding: 24px; border-radius: 18px; }
+    .section-label { font-size: 16px; }
+    .search-input { font-size: 28px; padding: 18px 20px; }
+    .sosta-targa { font-size: 28px; }
+    .sosta-tipo { font-size: 16px; }
+    .sosta-time { font-size: 18px; }
+    .uscita-quick-btn { font-size: 18px; padding: 12px 18px; }
+    .overlay-targa { font-size: 52px; }
+    .overlay-title { font-size: 38px; }
+    .overlay-sub { font-size: 20px; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">C</div>
+    <div class="logo-text">CHARLOTTE</div>
+  </div>
+  <div class="garage-badge">
+    <select id="garage-select" onchange="cambiaGarage(this.value)">
+      <option value="fiesolana">📍 FIESOLANA</option>
+      <option value="venezia">📍 VENEZIA</option>
+      <option value="borgopinti">📍 BORGOPINTI</option>
+      <option value="cimabue">📍 CIMABUE</option>
+    </select>
+  </div>
+</div>
+
+<!-- Camera input -->
+<input type="file" id="camera-input" accept="image/*" capture="environment">
+
+<!-- ═══ HOME SCREEN ═══ -->
+<div class="main">
+<div id="screen-home" class="screen active">
+
+  <div class="time-display">
+    <div class="time" id="clock">--:--</div>
+    <div class="date" id="datex">-- / -- / ----</div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="val" id="stat-attive">0</div>
+      <div class="lbl">Attive</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="stat-oggi">0</div>
+      <div class="lbl">Oggi</div>
+    </div>
+    <div class="stat">
+      <div class="val" id="stat-tot">0</div>
+      <div class="lbl">Totali</div>
+    </div>
+  </div>
+
+  <div class="action-grid">
+    <div class="action-btn ingresso" onclick="showScreen('ingresso')">
+      <span class="btn-icon">🚗</span>
+      <div class="btn-label">Ingresso</div>
+      <div class="btn-sub">Nuova sosta</div>
+    </div>
+    <div class="action-btn uscita" onclick="showScreen('uscita')">
+      <span class="btn-icon">🏁</span>
+      <div class="btn-label">Uscita</div>
+      <div class="btn-sub">Chiudi sosta</div>
+    </div>
+    <div class="action-btn lista" onclick="showScreen('lista')">
+      <span class="btn-icon">📋</span>
+      <div class="btn-label">Lista</div>
+      <div class="btn-sub">Soste attive</div>
+    </div>
+    <div class="action-btn ricerca" onclick="showScreen('ricerca')">
+      <span class="btn-icon">🔍</span>
+      <div class="btn-label">Cerca</div>
+      <div class="btn-sub">Per targa</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ INGRESSO SCREEN ═══ -->
+<div id="screen-ingresso" class="screen">
+  <div class="screen-header">
+    <div class="back-btn" onclick="showScreen('home')">←</div>
+    <div class="screen-title" style="color: var(--green)">🚗 Ingresso</div>
+  </div>
+
+  <div class="targa-display" id="targa-display-in">
+    <div class="targa-placeholder" id="targa-ph-in">Scansiona o inserisci targa</div>
+    <div class="targa-value" id="targa-val-in" style="display:none"></div>
+  </div>
+
+  <button class="camera-btn" onclick="apriCamera('ingresso')">
+    📷 Scansiona Targa
+  </button>
+
+  <div class="manual-section">
+    <div class="manual-label">Inserimento manuale</div>
+    <div class="manual-input-row">
+      <input class="manual-input" id="manual-in" placeholder="AB123CD" maxlength="8"
+             oninput="this.value=this.value.toUpperCase()" onkeyup="manualInput('ingresso')">
+      <button class="manual-confirm-btn" onclick="confermaTargaManuale('ingresso')">✓</button>
+    </div>
+  </div>
+
+  <div class="tipo-section">
+    <div class="manual-label">Tipo veicolo</div>
+    <div class="tipo-grid">
+      <div class="tipo-btn" onclick="selezionaTipo(this,'UTILITARIA')">
+        <span class="tipo-icon">🚗</span>Utilitaria
+      </div>
+      <div class="tipo-btn" onclick="selezionaTipo(this,'BERLINA')">
+        <span class="tipo-icon">🚘</span>Berlina
+      </div>
+      <div class="tipo-btn" onclick="selezionaTipo(this,'SUV')">
+        <span class="tipo-icon">🚙</span>SUV
+      </div>
+      <div class="tipo-btn" onclick="selezionaTipo(this,'VAN')">
+        <span class="tipo-icon">🚐</span>Van
+      </div>
+      <div class="tipo-btn" onclick="selezionaTipo(this,'MOTO')">
+        <span class="tipo-icon">🏍️</span>Moto
+      </div>
+      <div class="tipo-btn" onclick="selezionaTipo(this,'ALTRO')">
+        <span class="tipo-icon">🚛</span>Altro
+      </div>
+    </div>
+  </div>
+
+  <button class="conferma-btn" id="btn-conferma-in" onclick="confermaIngresso()">
+    ✓ Conferma Ingresso
+  </button>
+</div>
+
+<!-- ═══ USCITA SCREEN ═══ -->
+<div id="screen-uscita" class="screen">
+  <div class="screen-header">
+    <div class="back-btn" onclick="showScreen('home')">←</div>
+    <div class="screen-title" style="color: var(--accent2)">🏁 Uscita</div>
+  </div>
+
+  <div class="targa-display" id="targa-display-out">
+    <div class="targa-placeholder" id="targa-ph-out">Scansiona o inserisci targa</div>
+    <div class="targa-value" id="targa-val-out" style="display:none"></div>
+  </div>
+
+  <button class="camera-btn" onclick="apriCamera('uscita')">
+    📷 Scansiona Targa
+  </button>
+
+  <div class="manual-section">
+    <div class="manual-label">Inserimento manuale</div>
+    <div class="manual-input-row">
+      <input class="manual-input" id="manual-out" placeholder="AB123CD" maxlength="8"
+             oninput="this.value=this.value.toUpperCase()" onkeyup="manualInput('uscita')">
+      <button class="manual-confirm-btn" onclick="confermaTargaManuale('uscita')">✓</button>
+    </div>
+  </div>
+
+  <div id="sosta-trovata" style="display:none">
+    <div class="tipo-section" style="border-color: var(--accent); margin-bottom:16px;">
+      <div class="manual-label">Sosta trovata</div>
+      <div style="margin-top:8px;">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--muted);">
+          Ingresso: <span id="out-ingresso" style="color:var(--accent3)"></span>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--muted); margin-top:4px;">
+          Tipo: <span id="out-tipo" style="color:var(--accent3)"></span>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace; font-size:13px; color:var(--muted); margin-top:4px;">
+          Durata: <span id="out-durata" style="color:var(--green); font-weight:bold;"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sosta-non-trovata" style="display:none; margin-bottom:16px;">
+    <div class="tipo-section" style="border-color: var(--red);">
+      <div style="color:var(--red); font-size:13px;">⚠️ Nessuna sosta attiva trovata per questa targa</div>
+    </div>
+  </div>
+
+  <button class="conferma-btn" id="btn-conferma-out" onclick="confermaUscita()" style="background: var(--accent2);">
+    ✓ Conferma Uscita
+  </button>
+</div>
+
+<!-- ═══ LISTA SCREEN ═══ -->
+<div id="screen-lista" class="screen">
+  <div class="screen-header">
+    <div class="back-btn" onclick="showScreen('home')">←</div>
+    <div class="screen-title" style="color: var(--amber)">📋 Soste Attive</div>
+  </div>
+  <div id="lista-soste"></div>
+</div>
+
+<!-- ═══ RICERCA SCREEN ═══ -->
+<div id="screen-ricerca" class="screen">
+  <div class="screen-header">
+    <div class="back-btn" onclick="showScreen('home')">←</div>
+    <div class="screen-title" style="color: var(--red)">🔍 Cerca Targa</div>
+  </div>
+  <input class="search-input" id="search-input" placeholder="AB123CD" maxlength="8"
+         oninput="this.value=this.value.toUpperCase(); cercaTarga(this.value)">
+  <div id="search-results"></div>
+</div>
+
+</div><!-- /main -->
+
+<!-- Success Overlay -->
+<div class="overlay" id="overlay" onclick="chiudiOverlay()">
+  <div class="overlay-icon" id="overlay-icon">✅</div>
+  <div class="overlay-targa" id="overlay-targa"></div>
+  <div class="overlay-title" id="overlay-title"></div>
+  <div class="overlay-sub" id="overlay-sub">Tocca per continuare</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// STATO APPLICAZIONE
+// ═══════════════════════════════════════════════
+
+let garageAttuale = 'fiesolana';
+let targaCorrente = '';
+let tipoVeicoloSelezionato = '';
+let targaUscita = '';
+let contatore = parseInt(localStorage.getItem('charlotte_counter') || '1');
+
+// Database soste in localStorage
+function getSoste() {
+  try { return JSON.parse(localStorage.getItem('charlotte_soste') || '[]'); }
+  catch { return []; }
+}
+
+function saveSoste(soste) {
+  localStorage.setItem('charlotte_soste', JSON.stringify(soste));
+}
+
+// ═══════════════════════════════════════════════
+// OROLOGIO
+// ═══════════════════════════════════════════════
+
+function aggiornaOrologio() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  const mo = String(now.getMonth()+1).padStart(2,'0');
+  const yy = now.getFullYear();
+  document.getElementById('clock').textContent = `${hh}:${mm}`;
+  document.getElementById('datex').textContent = `${dd} / ${mo} / ${yy}`;
+}
+setInterval(aggiornaOrologio, 1000);
+aggiornaOrologio();
+
+// ═══════════════════════════════════════════════
+// STATISTICHE
+// ═══════════════════════════════════════════════
+
+function aggiornaStats() {
+  const soste = getSoste().filter(s => s.garage === garageAttuale);
+  const attive = soste.filter(s => !s.uscita).length;
+  const oggi = new Date().toLocaleDateString('it-IT');
+  const oggiCount = soste.filter(s => s.ingresso.startsWith(oggi.split('/').reverse().join('/')
+    .replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$3/$2/$1'))).length;
+  document.getElementById('stat-attive').textContent = attive;
+  document.getElementById('stat-oggi').textContent = oggiCount;
+  document.getElementById('stat-tot').textContent = soste.length;
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGAZIONE
+// ═══════════════════════════════════════════════
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+
+  // Reset stato se torno a home
+  if (name === 'home') {
+    resetIngresso();
+    resetUscita();
+    aggiornaStats();
+  }
+  if (name === 'lista') aggiornaLista();
+  if (name === 'ricerca') {
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-results').innerHTML = '';
+  }
+}
+
+function cambiaGarage(val) {
+  garageAttuale = val;
+  aggiornaStats();
+}
+
+// ═══════════════════════════════════════════════
+// CAMERA / OCR
+// ═══════════════════════════════════════════════
+
+let cameraMode = '';
+
+document.getElementById('camera-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    // In produzione qui chiamerai Plate Recognizer API
+    // Per ora mostriamo la foto e simuliamo
+    estraiTarga(ev.target.result, cameraMode);
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+function apriCamera(mode) {
+  cameraMode = mode;
+  document.getElementById('camera-input').click();
+}
+
+function estraiTarga(imageData, mode) {
+  // TODO: Integra Plate Recognizer API
+  // Per ora mostra dialogo inserimento manuale
+  const targa = prompt('Targa rilevata (conferma o correggi):');
+  if (targa && targa.trim()) {
+    impostaTarga(targa.trim().toUpperCase(), mode);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// GESTIONE TARGA
+// ═══════════════════════════════════════════════
+
+function impostaTarga(targa, mode) {
+  if (mode === 'ingresso') {
+    targaCorrente = targa;
+    document.getElementById('targa-ph-in').style.display = 'none';
+    document.getElementById('targa-val-in').style.display = 'block';
+    document.getElementById('targa-val-in').textContent = targa;
+    document.getElementById('targa-display-in').classList.add('has-targa');
+    document.getElementById('manual-in').value = targa;
+    checkConfermaIngresso();
+  } else {
+    targaUscita = targa;
+    document.getElementById('targa-ph-out').style.display = 'none';
+    document.getElementById('targa-val-out').style.display = 'block';
+    document.getElementById('targa-val-out').textContent = targa;
+    document.getElementById('targa-display-out').classList.add('has-targa');
+    document.getElementById('manual-out').value = targa;
+    cercaSostaAttiva(targa);
+  }
+}
+
+function manualInput(mode) {
+  if (mode === 'ingresso') {
+    const val = document.getElementById('manual-in').value;
+    if (val.length >= 5) impostaTarga(val, 'ingresso');
+  } else {
+    const val = document.getElementById('manual-out').value;
+    if (val.length >= 5) {
+      targaUscita = val;
+      document.getElementById('targa-ph-out').style.display = 'none';
+      document.getElementById('targa-val-out').style.display = 'block';
+      document.getElementById('targa-val-out').textContent = val;
+      document.getElementById('targa-display-out').classList.add('has-targa');
+    }
+  }
+}
+
+function confermaTargaManuale(mode) {
+  const val = document.getElementById(mode === 'ingresso' ? 'manual-in' : 'manual-out').value;
+  if (val.length >= 5) {
+    if (mode === 'uscita') cercaSostaAttiva(val);
+    impostaTarga(val, mode);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// TIPO VEICOLO
+// ═══════════════════════════════════════════════
+
+function selezionaTipo(btn, tipo) {
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  tipoVeicoloSelezionato = tipo;
+  checkConfermaIngresso();
+}
+
+function checkConfermaIngresso() {
+  const ok = targaCorrente.length >= 5 && tipoVeicoloSelezionato;
+  const btn = document.getElementById('btn-conferma-in');
+  btn.classList.toggle('enabled', ok);
+}
+
+// ═══════════════════════════════════════════════
+// INGRESSO
+// ═══════════════════════════════════════════════
+
+function confermaIngresso() {
+  if (!targaCorrente || !tipoVeicoloSelezionato) return;
+
+  const now = new Date();
+  const ts = formatDatetime(now);
+
+  const sosta = {
+    id: contatore++,
+    targa: targaCorrente,
+    tipo: tipoVeicoloSelezionato,
+    garage: garageAttuale,
+    ingresso: ts,
+    uscita: null,
+    durata: null
+  };
+
+  localStorage.setItem('charlotte_counter', contatore);
+
+  const soste = getSoste();
+  soste.push(sosta);
+  saveSoste(soste);
+
+  // Mostra overlay
+  document.getElementById('overlay-icon').textContent = '✅';
+  document.getElementById('overlay-targa').textContent = targaCorrente;
+  document.getElementById('overlay-title').textContent = 'INGRESSO REGISTRATO';
+  document.getElementById('overlay-sub').textContent = ts + ' — Tocca per continuare';
+  document.getElementById('overlay').classList.add('show');
+
+  // TODO: stampa ticket ingresso via stampante termica
+}
+
+function resetIngresso() {
+  targaCorrente = '';
+  tipoVeicoloSelezionato = '';
+  document.getElementById('targa-ph-in').style.display = 'block';
+  document.getElementById('targa-val-in').style.display = 'none';
+  document.getElementById('targa-display-in').classList.remove('has-targa');
+  document.getElementById('manual-in').value = '';
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('btn-conferma-in').classList.remove('enabled');
+}
+
+// ═══════════════════════════════════════════════
+// USCITA
+// ═══════════════════════════════════════════════
+
+function cercaSostaAttiva(targa) {
+  const soste = getSoste();
+  const sosta = soste.filter(s =>
+    s.targa === targa && s.garage === garageAttuale && !s.uscita
+  ).pop();
+
+  document.getElementById('sosta-trovata').style.display = 'none';
+  document.getElementById('sosta-non-trovata').style.display = 'none';
+  document.getElementById('btn-conferma-out').classList.remove('enabled');
+
+  if (sosta) {
+    const now = new Date();
+    const inDate = parseDatetime(sosta.ingresso);
+    const diffMs = now - inDate;
+    const diffMins = Math.floor(diffMs / 60000);
+    const giorni = Math.floor(diffMins / 1440);
+    const ore = Math.floor((diffMins % 1440) / 60);
+    const minuti = diffMins % 60;
+
+    document.getElementById('out-ingresso').textContent = sosta.ingresso;
+    document.getElementById('out-tipo').textContent = sosta.tipo;
+    document.getElementById('out-durata').textContent =
+      `${giorni}g ${ore}h ${minuti}m`;
+
+    document.getElementById('sosta-trovata').style.display = 'block';
+    document.getElementById('btn-conferma-out').classList.add('enabled');
+  } else {
+    document.getElementById('sosta-non-trovata').style.display = 'block';
+  }
+}
+
+function confermaUscita() {
+  const soste = getSoste();
+  const idx = soste.findIndex(s =>
+    s.targa === targaUscita && s.garage === garageAttuale && !s.uscita
+  );
+  if (idx === -1) return;
+
+  const now = new Date();
+  const ts = formatDatetime(now);
+  const inDate = parseDatetime(soste[idx].ingresso);
+  const diffMs = now - inDate;
+  const diffMins = Math.floor(diffMs / 60000);
+  const giorni = Math.floor(diffMins / 1440);
+  const ore = Math.floor((diffMins % 1440) / 60);
+  const minuti = diffMins % 60;
+
+  soste[idx].uscita = ts;
+  soste[idx].durata = `${giorni}g ${ore}h ${minuti}m`;
+  saveSoste(soste);
+
+  document.getElementById('overlay-icon').textContent = '🏁';
+  document.getElementById('overlay-targa').textContent = targaUscita;
+  document.getElementById('overlay-title').textContent = 'USCITA REGISTRATA';
+  document.getElementById('overlay-sub').textContent =
+    `Durata: ${giorni}g ${ore}h ${minuti}m — Tocca per continuare`;
+  document.getElementById('overlay').classList.add('show');
+
+  // TODO: stampa ticket uscita
+}
+
+function resetUscita() {
+  targaUscita = '';
+  document.getElementById('targa-ph-out').style.display = 'block';
+  document.getElementById('targa-val-out').style.display = 'none';
+  document.getElementById('targa-display-out').classList.remove('has-targa');
+  document.getElementById('manual-out').value = '';
+  document.getElementById('sosta-trovata').style.display = 'none';
+  document.getElementById('sosta-non-trovata').style.display = 'none';
+  document.getElementById('btn-conferma-out').classList.remove('enabled');
+}
+
+// ═══════════════════════════════════════════════
+// LISTA
+// ═══════════════════════════════════════════════
+
+function aggiornaLista() {
+  const soste = getSoste().filter(s => s.garage === garageAttuale && !s.uscita);
+  const container = document.getElementById('lista-soste');
+
+  if (soste.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🅿️</div>
+        <div class="empty-text">Nessuna sosta attiva al momento</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = soste.reverse().map(s => {
+    const now = new Date();
+    const inDate = parseDatetime(s.ingresso);
+    const diffMs = now - inDate;
+    const diffMins = Math.floor(diffMs / 60000);
+    const ore = Math.floor(diffMins / 60);
+    const minuti = diffMins % 60;
+    return `
+      <div class="sosta-card attiva">
+        <div class="sosta-info">
+          <div class="sosta-targa">${s.targa}</div>
+          <div class="sosta-tipo">${s.tipo}</div>
+        </div>
+        <div>
+          <div class="sosta-time">${s.ingresso.split(' ')[1]}</div>
+          <div class="sosta-duration">${ore}h ${minuti}m</div>
+        </div>
+        <button class="uscita-quick-btn" onclick="uscitaRapida('${s.targa}')">Uscita</button>
+      </div>`;
+  }).join('');
+}
+
+function uscitaRapida(targa) {
+  showScreen('uscita');
+  impostaTarga(targa, 'uscita');
+  cercaSostaAttiva(targa);
+}
+
+// ═══════════════════════════════════════════════
+// RICERCA
+// ═══════════════════════════════════════════════
+
+function cercaTarga(query) {
+  if (query.length < 3) {
+    document.getElementById('search-results').innerHTML = '';
+    return;
+  }
+  const soste = getSoste().filter(s =>
+    s.garage === garageAttuale && s.targa.includes(query)
+  ).reverse().slice(0, 10);
+
+  const container = document.getElementById('search-results');
+  if (soste.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-text">Nessun risultato</div></div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="section-label">${soste.length} risultati</div>` +
+    soste.map(s => `
+      <div class="sosta-card ${s.uscita ? 'chiusa' : 'attiva'}">
+        <div class="sosta-info">
+          <div class="sosta-targa">${s.targa}</div>
+          <div class="sosta-tipo">${s.tipo} • ${s.uscita ? 'Chiusa' : 'ATTIVA'}</div>
+        </div>
+        <div>
+          <div class="sosta-time">${s.ingresso}</div>
+          ${s.durata ? `<div class="sosta-duration">${s.durata}</div>` : ''}
+        </div>
+      </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+// OVERLAY
+// ═══════════════════════════════════════════════
+
+function chiudiOverlay() {
+  document.getElementById('overlay').classList.remove('show');
+  showScreen('home');
+}
+
+// ═══════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════
+
+function formatDatetime(date) {
+  const dd = String(date.getDate()).padStart(2,'0');
+  const mo = String(date.getMonth()+1).padStart(2,'0');
+  const yy = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2,'0');
+  const mm = String(date.getMinutes()).padStart(2,'0');
+  return `${dd}/${mo}/${yy} ${hh}:${mm}`;
+}
+
+function parseDatetime(str) {
+  const [date, time] = str.split(' ');
+  const [dd, mo, yy] = date.split('/');
+  const [hh, mm] = time.split(':');
+  return new Date(yy, mo-1, dd, hh, mm);
+}
+
+// Init
+aggiornaStats();
+</script>
+</body>
+</html>

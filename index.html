@@ -419,13 +419,19 @@ function estraiTarga(imageData, mode) {
   fd.append('upload', blob, 'targa.jpg');
   fd.append('regions', 'it');
 
+  mostraDebug(mode, '📡 Chiamata API in corso...');
+
   fetch('https://api.platerecognizer.com/v1/plate-reader/', {
     method: 'POST',
     headers: { 'Authorization': 'Token a041edd34c6ee75252c23967c99b9cdec101c79f' },
     body: fd
   })
-  .then(r => r.json())
+  .then(r => {
+    mostraDebug(mode, '📥 HTTP status: ' + r.status);
+    return r.json();
+  })
   .then(data => {
+    mostraDebug(mode, '📋 Risposta: ' + JSON.stringify(data).substring(0, 200));
     resetDisplay(mode);
     if (data.results && data.results.length > 0) {
       const targa = data.results[0].plate.toUpperCase();
@@ -435,10 +441,23 @@ function estraiTarga(imageData, mode) {
       apriOCROverlay('', 0, mode);
     }
   })
-  .catch(() => {
+  .catch(err => {
+    mostraDebug(mode, '❌ Errore: ' + err.message);
     resetDisplay(mode);
     apriOCROverlay('', 0, mode);
   });
+}
+
+function mostraDebug(mode, msg) {
+  const id = mode === 'ingresso' ? 'targa-display-in' : 'targa-display-out';
+  const el = document.getElementById(id);
+  if (el) {
+    const dbg = document.createElement('div');
+    dbg.style.cssText = 'font-size:11px;color:#f59e0b;font-family:monospace;margin-top:4px;word-break:break-all;text-align:left;';
+    dbg.textContent = msg;
+    el.appendChild(dbg);
+  }
+  console.log('[Charlotte OCR]', msg);
 }
 
 // ─── OCR OVERLAY (invece del prompt) ───

@@ -388,6 +388,30 @@
          oninput="this.value=this.value.toUpperCase();cercaTarga(this.value)">
   <div id="search-results"></div>
 </div>
+<!-- ═══ REPORT SCREEN ═══ -->
+<div id="screen-report" class="screen">
+  <div class="screen-header">
+    <div class="back-btn" onclick="showScreen('home')">←</div>
+    <div class="screen-title" style="color:var(--accent3)">📊 Report Storico</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+    <select id="filter-conv" onchange="aggiornaReport()" style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:13px;outline:none;">
+      <option value="">Tutte le convenzioni</option>
+      <option value="NESSUNA">Nessuna</option>
+      <option value="HOTEL MEDICI">Hotel Medici</option>
+      <option value="HOTEL BODONI">Hotel Bodoni</option>
+      <option value="HOTEL JAMES">Hotel James</option>
+    </select>
+    <select id="filter-stato" onchange="aggiornaReport()" style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:13px;outline:none;">
+      <option value="">Tutte</option>
+      <option value="attiva">Solo attive</option>
+      <option value="chiusa">Solo chiuse</option>
+    </select>
+  </div>
+  <div id="report-loading" style="text-align:center;color:var(--muted);padding:20px;display:none;">⏳ Caricamento...</div>
+  <div id="report-list"></div>
+</div>
+
 </div>
 
 <!-- ═══ OVERLAY SUCCESSO ═══ -->
